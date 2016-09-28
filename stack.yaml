@@ -8,10 +8,16 @@ packages:
 - '.'
 - location:
     git: https://github.com/Drezil/subhask.git
-    commit: ghc-8.0
+    commit: origin/ghc-8.0
+
+flags:
+    subhask:
+        LlvmSupport: False
 
 # Packages to be pulled from upstream that are not in the resolver (e.g., acme-missiles-0.3)
-extra-deps: []
+extra-deps: [
+        homoiconic-0.1.2.0
+]
 
 # Override default flag values for local packages and extra-deps
 flags: {}
