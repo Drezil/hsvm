@@ -21,7 +21,7 @@ import qualified Data.List as L
 import qualified Data.Function as F
 import Data.Ord (comparing, Down(..))
 
-getGradient :: (P.Num a, Prim a, ValidScalar a, Logic a ~ Bool, Scalar a ~ a, FreeModule a)
+getGradient :: (Field a, Prim a, ValidScalar a, Logic a ~ Bool, Scalar a ~ a, FreeModule a)
             => (UVector (d::Symbol) a -> UVector (d::Symbol) a -> Scalar a)  -- ^ Kernel-Function
             -> BArray (Labeled' (UVector (d::Symbol) a) Bool)                -- ^ Data-set
             -> Scalar a                                                      -- ^ C
@@ -34,25 +34,25 @@ getGradient k xys (c :: Scalar a) =
                 in
                 getGradient' k xys c alpha g
         where
-                -- getGradient' :: (Prim a, ValidScalar a, Logic a ~ Bool, Scalar a ~ a, FreeModule a)
-                --              => (UVector (d::Symbol) a -> UVector (d::Symbol) a -> Scalar a) -- ^ Kernel-Function
-                --              -> BArray (Labeled' (UVector (d::Symbol) a) Bool)               -- ^ Data-set
-                --              -> Scalar a                                                     -- ^ C
-                --              -> UVector (n::Symbol) a                                        -- ^ alphas
-                --              -> UVector (d::Symbol) a                                        -- ^ gradients
-                --              -> UVector (d::Symbol) a                                        -- ^ resulting gradient
+                getGradient' :: (Field a, Prim a, ValidScalar a, Logic a ~ Bool, Scalar a ~ a, FreeModule a)
+                             => (UVector (d::Symbol) a -> UVector (d::Symbol) a -> Scalar a)  -- ^ Kernel-Function
+                             -> BArray (Labeled' (UVector (d::Symbol) a) Bool)                -- ^ Data-set
+                             -> Scalar a                                                      -- ^ C
+                             -> UVector (n::Symbol) a                                         -- ^ alphas
+                             -> UVector (d::Symbol) a                                         -- ^ gradients
+                             -> UVector (d::Symbol) a                                         -- ^ resulting gradient
                 getGradient' k xys c alpha g =
-                        let i = fst . P.head . L.sortBy (comparing $        snd) . fmap (\(i,gi) -> (i, y i * gi)) . P.filter filterI . toIxList $ g
-                            j = fst . P.head . L.sortBy (comparing $ Down . snd) . fmap (\(i,gi) -> (i, y i * gi)) . P.filter filterJ . toIxList $ g
-                            filterI (i, _) = (y i * alpha ! i) < c
-                            filterJ (i, _) = (y i * alpha ! i) > 0
-                            x i =               xLabeled' $ xys!i
-                            y i = boolToClass $ yLabeled' $ xys!i
+                        let i = fst . P.head . L.sortBy (comparing $        snd) . fmap (\(i,gi) -> (i, y i $ gi)) . P.filter filterI . toIxList $ g
+                            j = fst . P.head . L.sortBy (comparing $ Down . snd) . fmap (\(i,gi) -> (i, y i $ gi)) . P.filter filterJ . toIxList $ g
+                            filterI (i, _) = (y i $ alpha ! i) < c
+                            filterJ (i, _) = (y i $ alpha ! i) > 0
+                            x i =           xLabeled' $ xys!i
+                            y i = boolToOp (yLabeled' $ xys!i)
                         in
-                        undefined
+                        g
 
 
-boolToClass :: (Integral a, Cancellative a) => Bool -> a
-boolToClass True  = one
-boolToClass False = negate one
+boolToOp :: Group a => Bool -> a -> a
+boolToOp True  = id
+boolToOp False = negate
 
