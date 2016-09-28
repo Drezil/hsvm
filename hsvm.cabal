@@ -25,6 +25,7 @@ library
                      , GADTs
                      , KindSignatures
                      , FlexibleContexts
+                     , ScopedTypeVariables
 
 test-suite hsvm-test
   type:                exitcode-stdio-1.0
